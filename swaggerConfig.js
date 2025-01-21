@@ -5,9 +5,9 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Logistics Service API',
+      title: 'Book Lending Service API',
       version: '1.0.0',
-      description: 'API documentation for the logistics service',
+      description: 'API documentation for the Book Lending service',
     },
     components: {
       securitySchemes: {

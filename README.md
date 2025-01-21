@@ -1,15 +1,6 @@
-# Logistics Service - Node.js
+# Book Lending - Node.js
 
-This repository contains an logistics service built using Node.js. It provides a scalable and secure solution for handle many logistic activities like create, update, track, and get data shipment.
-
----
-
-## Features
-
-- **Create Shipment**: Allow users to create shipment data including sender, receiver, dan detail.
-- **Update Shipment Status**: Allow users to update the shipment status.
-- **Track Shipment**: Getting the detail info of shipment datas based on tracking number.
-- **Get Shipment**: Getting all of shipment data by user.
+This repository contains an book lending built using Node.js. It provides a scalable and secure solution for handle many book lending activities like create, update, delete of books data, lending list, and list user.
 
 ---
 
@@ -25,12 +16,12 @@ Ensure you have the following installed:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/lfnsyhd/logistics-service
+   git clone https://github.com/lfnsyhd/book-lending-service
    ```
 
 2. Navigate to the project directory:
    ```bash
-   cd logistics-service
+   cd book-lending-service
    ```
 
 3. Install dependencies:
@@ -44,7 +35,10 @@ Ensure you have the following installed:
    Replace `.env-example` to `.env` and configure the variable
 
 5. Set up database:
-   Create new database `logistics_db` or anything else based on `DB_NAME` in `.env` file.
+   Create new database `book_lending_db` or anything else based on `DB_NAME` in `.env` file.
+
+6. Import database (optional):
+   For example and running purpose, this project already including dumped postgre sql file named `public.sql` and import it into `book_lending_db` database.
 
 ### Running the App
 
