@@ -22,8 +22,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 5000}`,
-        description: 'Local Development Server',
+        url: `https://book-lending-supabase.vercel.app`,
+        description: 'Production Server',
       },
     ],
   },
