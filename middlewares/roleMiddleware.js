@@ -19,7 +19,7 @@ export const authorizeAdmin = async (req, res, next) => {
     .single();
 
   if(error) {
-    return res.status(403).json({ message: 'Access denied, admin only', userId });
+    return res.status(403).json({ message: 'Access denied, admin only' });
   }
 
   next();
