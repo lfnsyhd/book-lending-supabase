@@ -1,23 +1,22 @@
-const { default: axios } = require('axios');
-const Book = require('../models/book');
-const Lending = require('../models/lending');
-const { Op } = require('sequelize');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import supabase from '../supabase.js';
+import bookService from './bookService.js';
+dotenv.config();
 
 // Function to borrow a book
 const borrowBook = async (userId, bookId) => {
-  const book = await Book.findByPk(bookId);
-  
+  const book = await bookService.getBookById(bookId);
+
   if (!book || !book.available) {
     throw new Error('Book is not available for borrowing');
   }
 
-  const existingLending = await Lending.findOne({
-    where: {
-      userId,
-      returned: false,
-    },
-  });
+  const { data: existingLending, error: errorExistingLending } = await supabase
+    .from('Lendings')
+    .select('*')
+    .eq('userId', userId)
+    .eq('returned', false)
+    .single();
 
   if (existingLending) {
     throw new Error('You can only borrow one book at a time');
@@ -26,45 +25,53 @@ const borrowBook = async (userId, bookId) => {
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 7); // Set due date for 7 days
 
-  const lending = await Lending.create({
-    userId,
-    bookId,
-    dueDate,
-    returned: false,
-  });
+  const { data: lending, error: errorLanding } = await supabase.from("Lendings")
+    .insert({
+      userId,
+      bookId,
+      dueDate,
+      returned: false,
+    })
+    .select('*')
+    .single();
 
-  book.available = false;
-  await book.save();
+  if (errorLanding) throw errorLanding;
 
+  await bookService.updateBook(bookId, { available: false });
   return lending;
 };
 
 // Function to return a borrowed book
 const returnBook = async (userId, lendingId) => {
-  if(!userId) throw new Error('userId is required');
-  if(!lendingId) throw new Error('lendingId is required');
+  if (!userId) throw new Error('userId is required');
+  if (!lendingId) throw new Error('lendingId is required');
 
-  const lending = await Lending.findOne({
-    where: {
+  const { data: lending, error } = await supabase
+    .from('Lendings')
+    .select('*')
+    .match({
       id: lendingId,
       userId,
       returned: false,
-    },
-  });
+    })
+    .single();
 
   if (!lending) {
     throw new Error('Lending record not found or already returned');
   }
 
-  const book = await Book.findByPk(lending.bookId);
-  book.available = true;
-  await book.save();
+  await bookService.updateBook(lending.bookId, { available: true });
 
-  lending.returned = true;
-  lending.returnDate = new Date();
-  await lending.save();
+  const { data: updateLending, error: errorUpdateLanding } = await supabase
+    .from('Lendings')
+    .update({ returned: true, returnDate: new Date() })
+    .eq('id', lendingId)
+    .select('*')
+    .single();
 
-  return lending;
+  if (errorUpdateLanding) throw errorUpdateLanding;
+
+  return updateLending;
 };
 
 // Function to get all borrowed books for a user
@@ -77,42 +84,29 @@ const getUserBorrowedBooks = async (userId, token) => {
     filter.userId = userId;
   }
 
-  try {
-    const borrowedBooks = await Lending.findAll({
-      where: filter,
-      include: [
-        {
-          model: Book,
-          required: false,
-        }
-      ]
-    });
+  const { data, error } = await supabase
+    .from('Lendings')
+    .select('*, Books(*)')
+    .match(filter);
 
-    // Convert Sequelize instances to plain objects
-    const borrowedBooksWithUserDetails = await Promise.all(
-      borrowedBooks.map(async (bookInstance) => {
-        const book = bookInstance.toJSON(); // Convert the Sequelize instance to a plain object
-        const userResponse = await axios.get(`${process.env.API_AUTH_URL}/detail/${book.userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        });
+  if (error) throw error;
 
-        return {
-          ...book, // Merge the plain book data with user details
-          User: userResponse.data.user,
-        };
-      })
-    );
+  const borrowedBooksWithUserDetails = await Promise.all(
+    data.map(async (lending) => {
+      const { data: user } = await supabase
+        .from("profiles")
+        .select('*')
+        .eq('user_id', lending.userId)
+        .single();
 
-    return borrowedBooksWithUserDetails;
-  } catch (error) {
-    throw new Error('Error fetching borrowed books or user details: ' + error.message);
-  }
+      return {
+        ...lending,
+        User: user
+      }
+    })
+  );
+
+  return borrowedBooksWithUserDetails;
 };
 
-module.exports = {
-  borrowBook,
-  returnBook,
-  getUserBorrowedBooks,
-};
+export default { borrowBook, returnBook, getUserBorrowedBooks }

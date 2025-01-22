@@ -1,6 +1,6 @@
-const express = require('express');
-const { borrowBook, returnBook, getUserBorrowedBooks } = require('../controllers/lendingController');
-const authenticateJWT = require('../middlewares/authMiddleware');
+import express from 'express';
+import { borrowBook, returnBook, getUserBorrowedBooks } from '../controllers/lendingController.js';
+import authenticateJWT from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -87,4 +87,4 @@ router.post('/return', authenticateJWT, returnBook);
  */
 router.get('/borrowed', authenticateJWT, getUserBorrowedBooks);
 
-module.exports = router;
+export default router;

@@ -1,61 +1,96 @@
-const { Op } = require('sequelize');
-const Book = require('../models/book');
+import supabase from '../supabase.js';
 
 // Create a new book
 const createBook = async (title, author) => {
-  const book = await Book.create({ title, author });
-  return book;
+  const { data, error } = await supabase
+    .from('Books')
+    .insert({ title, author })
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 };
 
 // Get all books with filter
 const getBooksWithFilter = async (title, author) => {
-  const filter = {};
+  let query = supabase.from('Books').select('*');
 
+  // Apply optional filters
   if (title) {
-    filter.title = { [Op.iLike]: `%${title}%` };
+    query = query.ilike('title', `%${title}%`);
   }
 
   if (author) {
-    filter.author = { [Op.iLike]: `%${author}%` };
+    query = query.ilike('author', `%${author}%`);
   }
 
-  // Mengambil buku dengan filter yang diterapkan
-  const books = await Book.findAll({ where: filter });
-  return books;
+  const { data, error } = await query;
+
+  if (error) {
+    return [];
+  }
+
+  return data;
 };
 
 // Get a book by its ID
 const getBookById = async (bookId) => {
-  const book = await Book.findByPk(bookId);
-  if (!book) {
+  const { data, error } = await supabase
+    .from('Books')
+    .select('*')
+    .eq('id', bookId)
+    .single();
+
+  if (error) {
     throw new Error('Book not found');
   }
-  return book;
+
+  return data;
 };
 
 // Update a book by its ID
-const updateBook = async (bookId, title, author) => {
-  const book = await Book.findByPk(bookId);
-  if (!book) {
-    throw new Error('Book not found');
-  }
-  book.title = title;
-  book.author = author;
-  await book.save();
-  return book;
+const updateBook = async (bookId, request) => {
+  await getBookById(bookId);
+
+  const { title, author, available } = request;
+
+  let updatedData = { 
+    ...(typeof title !== 'undefined' ? { title } : {}),
+    ...(typeof author !== 'undefined' ? { author } : {}),
+    ...(typeof available === 'boolean' ? { available } : {})
+  };
+
+  const { data, error } = await supabase
+    .from('Books')
+    .update(updatedData)
+    .eq('id', bookId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return data;
 };
 
 // Delete a book by its ID
 const deleteBook = async (bookId) => {
-  const book = await Book.findByPk(bookId);
-  if (!book) {
-    throw new Error('Book not found');
-  }
-  await book.destroy();
-  return book;
+  await getBookById(bookId);
+
+  const { data, error } = await supabase
+    .from('Books')
+    .delete()
+    .eq('id', bookId);
+
+  if (error) throw error;
+
+  return data;
 };
 
-module.exports = {
+export default {
   createBook,
   getBooksWithFilter,
   getBookById,

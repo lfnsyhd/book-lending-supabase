@@ -1,5 +1,7 @@
-const swaggerJsDoc = require('swagger-jsdoc');
-require('dotenv').config();
+import swaggerJsDoc from 'swagger-jsdoc';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -30,4 +32,4 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-module.exports = swaggerDocs;
+export default swaggerDocs;

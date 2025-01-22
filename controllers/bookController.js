@@ -1,7 +1,7 @@
-const bookService = require('../services/bookService');
+import bookService from '../services/bookService.js';
 
 // Create a new book
-const createBook = async (req, res) => {
+export const createBook = async (req, res) => {
   try {
     const { title, author } = req.body;
     const newBook = await bookService.createBook(title, author);
@@ -12,7 +12,7 @@ const createBook = async (req, res) => {
 };
 
 // Get all books
-const getAllBooks = async (req, res) => {
+export const getAllBooks = async (req, res) => {
   try {
     const { title, author } = req.query;
     const books = await bookService.getBooksWithFilter(title, author);
@@ -23,7 +23,7 @@ const getAllBooks = async (req, res) => {
 };
 
 // Get a book by ID
-const getBookById = async (req, res) => {
+export const getBookById = async (req, res) => {
   try {
     const book = await bookService.getBookById(req.params.bookId);
     res.status(200).json(book);
@@ -33,10 +33,9 @@ const getBookById = async (req, res) => {
 };
 
 // Update a book by ID
-const updateBook = async (req, res) => {
+export const updateBook = async (req, res) => {
   try {
-    const { title, author } = req.body;
-    const updatedBook = await bookService.updateBook(req.params.bookId, title, author);
+    const updatedBook = await bookService.updateBook(req.params.bookId, req.body);
     res.status(200).json(updatedBook);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -44,19 +43,11 @@ const updateBook = async (req, res) => {
 };
 
 // Delete a book by ID
-const deleteBook = async (req, res) => {
+export const deleteBook = async (req, res) => {
   try {
     const deletedBook = await bookService.deleteBook(req.params.bookId);
     res.status(200).json(deletedBook);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
-};
-
-module.exports = {
-  createBook,
-  getAllBooks,
-  getBookById,
-  updateBook,
-  deleteBook,
 };

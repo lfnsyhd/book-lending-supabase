@@ -1,13 +1,13 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   createBook,
   getAllBooks,
   getBookById,
   updateBook,
   deleteBook,
-} = require('../controllers/bookController');
-const authenticateJWT = require('../middlewares/authMiddleware');
-const { authorizeAdmin } = require('../middlewares/roleMiddleware');
+} from '../controllers/bookController.js';
+import authenticateJWT from '../middlewares/authMiddleware.js';
+import { authorizeAdmin } from '../middlewares/roleMiddleware.js';
 
 const router = express.Router();
 
@@ -151,4 +151,4 @@ router.put('/:bookId', authenticateJWT, authorizeAdmin, updateBook);
  */
 router.delete('/:bookId', authenticateJWT, authorizeAdmin, deleteBook);
 
-module.exports = router;
+export default router;
